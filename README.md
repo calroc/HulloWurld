@@ -1,8 +1,8 @@
 # README
 
-## Welcome to "Hullo World"
+## Welcome to ["Hullo World"](https://calroc.github.io/HulloWurld/Hullo.html)
 
-It's a simple self-hosted notebook web app modeled on [Tiddlywiki classic version](http://classic.tiddlywiki.com/).
+It's a simple self-hosted notebook web app modeled on [Tiddlywiki classic version](http://classic.tiddlywiki.com/). [Try it here. Live demo.](https://calroc.github.io/HulloWurld/Hullo.html)
 
 There is an index of links to cards at the bottom of the page.  You can create a new card by clicking on the `New` button at the top of the page, or you can write a title in WikiTitle format and it will automatically be turned into a link that will create that card when you click on it.
 

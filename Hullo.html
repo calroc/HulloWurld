@@ -308,25 +308,10 @@ html, body {
 </style>
 <script id="heap" type="text/javascript">var heap_data = {
  "cards": {
-  "6ed96fc0-3d9f-49ba-9aee-81b9fe104c17": {
-   "cardid": "6ed96fc0-3d9f-49ba-9aee-81b9fe104c17",
-   "title": "ReviewSoFar",
-   "text": "So, I can create new cards, edit them, and save the page with the new content.\n\nI have html support via markdown.\n\nI can close and open the cards; they are stored in the \"heap\" script.\n\n\n-----\n\n## I've basically got my own lil TiddlyWiki."
-  },
-  "31584221-ece9-4bbc-9196-2382cf739c7d": {
-   "title": "AddAnEditor",
-   "text": "There are tons of e.g. full-fledged JS editors out there, complete with syntax-highlighting and such. Ooo la la!\n\nIt wouldn't be too much work to plug in something like that.\n\nIt would also be fun to implement little tools to \"upgrade\" the default editing experience, eh\n\nFor now, I went with a simple `textarea` and markdown.",
-   "cardid": "31584221-ece9-4bbc-9196-2382cf739c7d"
-  },
-  "0cc6a03d-5b3a-4d1d-bbae-0b6dd4a4fafa": {
-   "title": "CardKindToggle",
-   "text": "Refers to the drop-down select for e.g. text, css, js, markdown, etc... What kind of support for such and how to implement it?<br>",
-   "cardid": "0cc6a03d-5b3a-4d1d-bbae-0b6dd4a4fafa"
-  },
-  "ed137a52-2cbb-417e-aa1a-c7b46be24a03": {
-   "title": "IntegrateJoyInteraction",
-   "text": "* Could have a task loop.\n* Could have a stack and command buttons; library; ability to create new commands.\n* Heck, could have tools to work with it (partial eval, super compile, transforms, et. al.)",
-   "cardid": "ed137a52-2cbb-417e-aa1a-c7b46be24a03"
+  "fcbf317a-e80f-4bbb-bf46-e6a983f31889": {
+   "title": "ReadMe",
+   "text": "# README\n\n## Welcome to \"Hullo World\"\n\nWelcome to \"Hullo World\", a simple self-hosted notebook web app modeled on [Tiddlywiki classic version](http://classic.tiddlywiki.com/).\n\nThere is an index of links to cards at the bottom of the page.  You can create a new card by clicking on the `New` button at the top of the page, or you can write a title in WikiTitle format and it will automatically be turned into a link that will create that card when you click on it.\n\nYou can save the current content by clicking on the `Save...` button at the top of the page.  Your browser will prompt you for saving.\n\nOn a card clicking the `Edit` button will switch it to an edit mode that lets you change the title or edit the content.  The content is [markdown](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) and the title should conform to WikiTitle.  The `Edit` button changes to `Done` and the `Close` button (which closes the card) is disabled so you can't accidentally close the card during editing.  (Yes, it might be preferable to auto-save on close, but whatever.  This was easy and it works well enough for now.)",
+   "cardid": "fcbf317a-e80f-4bbb-bf46-e6a983f31889"
   },
   "71dbd23d-9015-47dd-a6fb-06a37e89e3eb": {
    "title": "ToDo",
@@ -342,22 +327,11 @@ html, body {
    "title": "InternalDocs",
    "text": "# Internals Documentation\n\n1. **JS Runtime** This is comprised of the minified versions of Knockout, Underscore, and Zepto (TODO: document the versions.)  I think of it as the \"runtime\" support for the page.  It's bascially just a blob of JS functionality.\n1. **CSS Styles** enough said.\n1. **Heap** This is just a script that contains a single `heap_data` object that is intended to store whatever data that must be persistent.  Right before saving the `Saver` dumps the current value of this object back to the script tag as JSON.\n1. **Library** A few useful functions that don't particularly need to go in the `Zepto()` call.\n1. **Link Handling** deals with the user clicking a link in a card.  Takes care of creating new cards when you click on an unknown WikiTitle.\n1. **Card Component** A Knockout component, view model, and functions for dealing with the card model.  A `card` right now is just a JS object with title, text, and card ID attributes.  They are stored in the `heap_data.cards` object.\n1. **Index Widget** the function that is responsible for updating the \"Index\" (currently at the bottom of the page, but that will likely change.)  It also enters cards into the `heap_data.by_title` mapping so we can lookup cards by their titles easily.  I felt this was simpler than using e.g. a Knockout widget and an Observable array.\n1. **Markdown Converter** scans for WikiTitle and converts to links, then runs the text through `marked` Markdown parser to get markup.  KO takes care of updating the DIV innerHTML.\n1. **Saver** prepares the `heap_data` and builds a copy of the page in a Blob for downloading.  By the time the user lifts her finger from clicking on the save link the content is already prepared to be downloaded.\n1. **Initialization**\n  1. The existing displayed cards are scanned for their card IDs and collected in an array which is then created a Knockout observableArray which in turn drives the display of cards.\n  1. The displayed cards are deleted.\n  1. The `card` Knockout template \"call\" is replaced into the `current_cards` DIV to drive the display of the cards.\n  1. The click event handler for dealing with links in the cards is bound.\n  1. The `Saver mousedown` event is bound to the `prepSaver` function.\n  1. Last but not least, Knockout `applyBindings()` is called to deal with card display and the \"New\" button that creates new blank cards.",
    "cardid": "1ac4b559-6103-4772-bd2a-2bc910e3a558"
-  },
-  "fcbf317a-e80f-4bbb-bf46-e6a983f31889": {
-   "title": "ReadMe",
-   "text": "# README\n\n## Welcome to \"Hullo World\"\n\nWelcome to \"Hullo World\", a simple self-hosted notebook web app modeled on [Tiddlywiki classic version](http://classic.tiddlywiki.com/).\n\nThere is an index of links to cards at the bottom of the page.  You can create a new card by clicking on the `New` button at the top of the page, or you can write a title in WikiTitle format and it will automatically be turned into a link that will create that card when you click on it.\n\nYou can save the current content by clicking on the `Save...` button at the top of the page.  Your browser will prompt you for saving.\n\nOn a card clicking the `Edit` button will switch it to an edit mode that lets you change the title or edit the content.  The content is [markdown](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) and the title should conform to WikiTitle.  The `Edit` button changes to `Done` and the `Close` button (which closes the card) is disabled so you can't accidentally close the card during editing.  (Yes, it might be preferable to auto-save on close, but whatever.  This was easy and it works well enough for now.)",
-   "cardid": "fcbf317a-e80f-4bbb-bf46-e6a983f31889"
   }
  },
  "by_title": {
-  "ReviewSoFar": "6ed96fc0-3d9f-49ba-9aee-81b9fe104c17",
-  "LinksDuh": "068ebde4-e456-44e3-845c-839eebfc40dc",
-  "AddAnEditor": "31584221-ece9-4bbc-9196-2382cf739c7d",
-  "CardKindToggle": "0cc6a03d-5b3a-4d1d-bbae-0b6dd4a4fafa",
-  "IntegrateJoyInteraction": "ed137a52-2cbb-417e-aa1a-c7b46be24a03",
   "ToDo": "71dbd23d-9015-47dd-a6fb-06a37e89e3eb",
   "TableDemo": "247eb725-386f-4f4b-b65d-f2345a5983b9",
-  "Untitled...": "fcbf317a-e80f-4bbb-bf46-e6a983f31889",
   "InternalDocs": "1ac4b559-6103-4772-bd2a-2bc910e3a558",
   "ReadMe": "fcbf317a-e80f-4bbb-bf46-e6a983f31889"
  }
