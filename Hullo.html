@@ -617,16 +617,21 @@ ko.components.register("card", {
 
 function UpdateIndex() {
 	var I = $("#index");
+	var u = $("<ul></ul>");
 	I.empty();
+	I.append("<h4>Index</h4>");
+	I.append(u);
 	//heap_data.by_title = {};
 	// If you don't clear the by_title mapping, then old links still work after you change their titles.
 	_.each(heap_data.cards, function (card) {
-		var a = $('<a></a>');
-		a.appendTo(I)
+		var a = $('<a></a>')
 		 .text(card.title)
 		 .attr("href", "#")
 		 .on("click", function () { DisplayCard(card) })
 		 ;
+		var li = $("<li></li>");
+		a.appendTo(li);
+		li.appendTo(u);
 		heap_data.by_title[card.title] = card.cardid;
 	})
 }
@@ -775,7 +780,6 @@ On a card clicking the `Edit` button will switch it to an edit mode that lets yo
 </card></div>
 
 <div id="foot">
-<h4>Index</h4>
 <div id="index"><a href="#">ReviewSoFar</a><a href="#">AddAnEditor</a><a href="#">CardKindToggle</a><a href="#">IntegrateJoyInteraction</a><a href="#">ToDo</a><a href="#">TableDemo</a><a href="#">InternalDocs</a><a href="#">ReadMe</a></div>
 </div>
 </body></html>
