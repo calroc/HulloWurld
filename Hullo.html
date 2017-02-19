@@ -473,38 +473,41 @@ function HandleLinkClick(e){
 	return false; 	
 }
 
-function FragmentLink(cardid, target) {
-	if (isWikiTitle(cardid)) {
-		WikiTitleFragment(cardid, target);
+function _ecxtrct(cardid, F, G, target, E) {
+	if (F(cardid)) {
+		G();
 	} else {
-		// cardid should be CardID.
+		// Known WikiTitle.
 		var card = heap_data.cards[cardid];
 		if (_.isUndefined(card)) {
 			target.addClass('broken_link');
-			alert("Broken link!\n#" + cardid);
+			alert(E());
 		} else {
 			DisplayCard(card);
 		}
 	}
 }
 
-function WikiTitleFragment(title, target) {
-	// A WikitTitle instead of CardID.
-	var cardid = heap_data.by_title[title];
-	if (_.isUndefined(cardid)) {
-		// An unknown WikiTitle, make a page.
-		MakeCard(title, "");
-	} else {
-		// Known WikiTitle.
-		var card = heap_data.cards[cardid];
-		if (_.isUndefined(card)) {
-			target.addClass('broken_link');
-			alert("Broken link!\nIn by_title but not cards.\n" + title);
-		} else {
-			DisplayCard(card);
-		}
-	}
+function FragmentLink(cardid, target) {
+	return _ecxtrct(
+		cardid,
+		isWikiTitle,
+		function() {WikiTitleFragment(cardid, target)},
+		target,
+		function() {return "Broken link!\n#" + cardid}
+		);
 }
+
+function WikiTitleFragment(title, target) {
+	return _ecxtrct(
+		heap_data.by_title[title],
+		_.isUndefined,
+		function() {MakeCard(title, "")},
+		target,
+		function() {return "Broken link!\nIn by_title but not cards.\n" + title}
+		);
+}
+
 
 /*
 	     _/_/_/                            _/   
