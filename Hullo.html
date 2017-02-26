@@ -296,6 +296,38 @@ html, body {
 	                                                      _/_/          
 */
 
+
+function joy(stack, expression, dictionary) {
+	let term;
+	while (!_.isEmpty(expression)) {
+		[term, expression] = expression;
+		if (_.isFunction(term)) {
+			[stack, expression, dictionary] = term(stack, expression, dictionary);
+		} else {
+			stack = [term, stack];
+		}
+	}
+	return [stack, expression, dictionary];
+}
+
+
+var D = {
+	add: function add(stack, expression, dictionary) {
+		let a = stack[0]; stack = stack[1];
+		let b = stack[0]; stack = stack[1];
+		return [[a + b, stack], expression, dictionary];
+	}
+};
+
+
+var S = [],
+	E = [14, [23, [D.add, []]]];
+
+
+[s, e, d] = joy(S, E, D)
+console.log(s.toSource())
+
+
 // Start.
 Zepto(function ($) {
 
