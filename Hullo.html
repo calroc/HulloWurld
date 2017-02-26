@@ -311,7 +311,6 @@ function joy(stack, expression, dictionary) {
 	return [stack, expression, dictionary];
 }
 
-
 var D = {
 	add: function add(stack, expression, dictionary) {
 		let a, b;
@@ -320,60 +319,76 @@ var D = {
 	}
 };
 
-
 var S = [],
 	E = [14, [23, [D.add, []]]];
-
 
 [s, e, d] = joy(S, E, D)
 console.log(s.toSource())
 
-
-
-
-
-
-
 function lookup(name) {
-	console.log('looking up', name);
-	return D[name] || 1023;
+	let thing = D[name];
+	if (_.isUndefined(thing)) {
+		throw 'I dunno what is ' + name;
+	}
+	return thing;
 }
 
-// var rules = {
-//     '-?\d+\.\d*': (s) => (+s),
-//     '\s+': Lexed.IGNORE,
-//     '-?\d+': (s) => (+s)
-// };
 var lexer = new Lexer();
+// Float
 lexer.addRule(/-?\d+\.\d*/, (s) => (+s));
+// Int
 lexer.addRule(/-?\d+/, (s) => (+s));
+// Brackets
 lexer.addRule(/\[|\]/, _.identity);
+// Identifier
 lexer.addRule(/[\w!@$%^&*()_+<>?|\/;:`~,.=-]+/, lookup);
-
+// Strings
+lexer.addRule(/"(?:[^"\\]|\\.)*"/, (s) => (s.slice(1, -1)));
+// Blankspace
 lexer.addRule(/\s+/, function () {});
 
-var test_source = '[123.456 ] add 789';
-lexer.setInput(test_source);
-
-var tokens = mori.intoArray(mori.takeWhile(_.identity, mori.repeatedly(() => lexer.lex())));
-console.log('lexer', tokens);
-
-// var scanner = new Scanner([
-// 	[, (s) => (+s)],
-// 	[/-?\d+/g, ],
-// 	[/\[|\]/g, (s) => (s)],
-// 	[/\s+/g, null]  // This doesn't seem to run (when I use the debugger), I suspect that JS RegExp sort of auto-skip whitespace?  Fucking javascript.
-// 	]);
-
-// var tokens = scanner.parse(test_source);
-
-
-
-
-function F(argument) {
-	console.log(argument);
-	return argument;
+function tokenize(text) {
+	lexer.setInput(text);
+	return mori.intoArray(mori.takeWhile(_.identity, mori.repeatedly(() => lexer.lex())));
 }
+
+function parse(tokens) {
+	let frame = [],
+		stack = [];
+
+	_.each(tokens, function (tok) {
+		if (tok == '[') {
+			stack.push(frame);
+			frame = [];
+			stack[stack.length - 1].push(frame);
+		} else if (tok == ']') {
+			frame = stack.pop();
+			frame[frame.length - 1] = array_to_stack(frame[frame.length - 1]);
+		} else {
+			frame.push(tok);
+		}
+	});
+
+	return array_to_stack(frame);
+}
+
+function array_to_stack(arr) {
+	let stack = [];
+	_.forEachRight(arr, function (item) {
+		stack = [item, stack];
+	});
+	return stack;
+}
+
+var test_source = '[123.456 ] 23 18 add "it does work." 789';
+var tokens = tokenize(test_source);
+var expr = parse(tokens);
+console.log(expr.toSource());
+
+[s, e, d] = joy([], expr, D);
+
+console.log(s.toSource())
+
 
 
 // Start.
