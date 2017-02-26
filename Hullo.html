@@ -313,8 +313,8 @@ function joy(stack, expression, dictionary) {
 
 var D = {
 	add: function add(stack, expression, dictionary) {
-		let a = stack[0]; stack = stack[1];
-		let b = stack[0]; stack = stack[1];
+		let a, b;
+		[a, [b, stack]] = stack;
 		return [[a + b, stack], expression, dictionary];
 	}
 };
