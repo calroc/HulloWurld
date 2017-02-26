@@ -5,7 +5,7 @@
 <script id="runtime" type="text/javascript">
 /*
 
-	    _/    _/            _/  _/                _/          _/                      _/        _/   
+		_/    _/            _/  _/                _/          _/                      _/        _/   
 	   _/    _/  _/    _/  _/  _/    _/_/        _/          _/  _/    _/  _/  _/_/  _/    _/_/_/    
 	  _/_/_/_/  _/    _/  _/  _/  _/    _/      _/    _/    _/  _/    _/  _/_/      _/  _/    _/     
 	 _/    _/  _/    _/  _/  _/  _/    _/        _/  _/  _/    _/    _/  _/        _/  _/    _/      
@@ -36,12 +36,11 @@
 	 _/    _/    _/  _/    _/  _/  _/            _/    _/    _/          
 	_/      _/_/_/  _/_/_/    _/    _/_/_/        _/_/      _/           
 
-	     _/_/_/                        _/                            _/                
+		 _/_/_/                        _/                            _/                
 	  _/          _/_/    _/_/_/    _/_/_/_/    _/_/    _/_/_/    _/_/_/_/    _/_/_/   
 	 _/        _/    _/  _/    _/    _/      _/_/_/_/  _/    _/    _/      _/_/        
 	_/        _/    _/  _/    _/    _/      _/        _/    _/    _/          _/_/     
 	 _/_/_/    _/_/    _/    _/      _/_/    _/_/_/  _/    _/      _/_/  _/_/_/        
-	                                                                                   
 
 	
 	* JS Runtime
@@ -58,7 +57,7 @@
 
 
 
-	    _/_/_/                          _/      _/                           
+		_/_/_/                          _/      _/                           
 	   _/    _/  _/    _/  _/_/_/    _/_/_/_/      _/_/_/  _/_/      _/_/    
 	  _/_/_/    _/    _/  _/    _/    _/      _/  _/    _/    _/  _/_/_/_/   
 	 _/    _/  _/    _/  _/    _/    _/      _/  _/    _/    _/  _/          
@@ -219,13 +218,13 @@ return 0<=b&&b<this.g?nf(this,b)[b&31]:c};k.Ua=function(a,b,c){if(0<=b&&b<this.g
 <link href="https://fonts.googleapis.com/css?family=EB+Garamond" rel="stylesheet">
 <style>
 /*
-	      _/_/_/    _/                _/           
+		  _/_/_/    _/                _/           
 	   _/        _/_/_/_/  _/    _/  _/    _/_/    
-	    _/_/      _/      _/    _/  _/  _/_/_/_/   
-	       _/    _/      _/    _/  _/  _/          
+		_/_/      _/      _/    _/  _/  _/_/_/_/   
+		   _/    _/      _/    _/  _/  _/          
 	_/_/_/        _/_/    _/_/_/  _/    _/_/_/     
-	                         _/                    
-	                    _/_/                       
+							 _/                    
+						_/_/                       
 */
 html, body {
 	background-color: #ffffff;
@@ -274,27 +273,29 @@ html, body {
 }
 
 /*
-	    _/    _/                               
+		_/    _/                               
 	   _/    _/    _/_/      _/_/_/  _/_/_/    
 	  _/_/_/_/  _/_/_/_/  _/    _/  _/    _/   
 	 _/    _/  _/        _/    _/  _/    _/    
 	_/    _/    _/_/_/    _/_/_/  _/_/_/       
-	                             _/            
-	                            _/             
+								 _/            
+								_/             
 */
 </style>
 <script id="heap" type="text/javascript">var heap_data = {};</script>
+<script src="lexer.js" type="text/javascript"></script>
 <script type="text/javascript">
 
 /*
-	    _/        _/  _/                                                
+		_/        _/  _/                                                
 	   _/            _/_/_/    _/  _/_/    _/_/_/  _/  _/_/  _/    _/   
 	  _/        _/  _/    _/  _/_/      _/    _/  _/_/      _/    _/    
 	 _/        _/  _/    _/  _/        _/    _/  _/        _/    _/     
 	_/_/_/_/  _/  _/_/_/    _/          _/_/_/  _/          _/_/_/      
-	                                                           _/       
-	                                                      _/_/          
+															   _/       
+														  _/_/          
 */
+
 
 
 function joy(stack, expression, dictionary) {
@@ -328,14 +329,61 @@ var S = [],
 console.log(s.toSource())
 
 
+
+
+
+
+
+function lookup(name) {
+	console.log('looking up', name);
+	return D[name] || 1023;
+}
+
+// var rules = {
+//     '-?\d+\.\d*': (s) => (+s),
+//     '\s+': Lexed.IGNORE,
+//     '-?\d+': (s) => (+s)
+// };
+var lexer = new Lexer();
+lexer.addRule(/-?\d+\.\d*/, (s) => (+s));
+lexer.addRule(/-?\d+/, (s) => (+s));
+lexer.addRule(/\[|\]/, _.identity);
+lexer.addRule(/[\w!@$%^&*()_+<>?|\/;:`~,.=-]+/, lookup);
+
+lexer.addRule(/\s+/, function () {});
+
+var test_source = '[123.456 ] add 789';
+lexer.setInput(test_source);
+
+var tokens = mori.intoArray(mori.takeWhile(_.identity, mori.repeatedly(() => lexer.lex())));
+console.log('lexer', tokens);
+
+// var scanner = new Scanner([
+// 	[, (s) => (+s)],
+// 	[/-?\d+/g, ],
+// 	[/\[|\]/g, (s) => (s)],
+// 	[/\s+/g, null]  // This doesn't seem to run (when I use the debugger), I suspect that JS RegExp sort of auto-skip whitespace?  Fucking javascript.
+// 	]);
+
+// var tokens = scanner.parse(test_source);
+
+
+
+
+function F(argument) {
+	console.log(argument);
+	return argument;
+}
+
+
 // Start.
 Zepto(function ($) {
 
 /*
-	      _/_/_/                                            
+		  _/_/_/                                            
 	   _/          _/_/_/  _/      _/    _/_/    _/  _/_/   
-	    _/_/    _/    _/  _/      _/  _/_/_/_/  _/_/        
-	       _/  _/    _/    _/  _/    _/        _/           
+		_/_/    _/    _/  _/      _/  _/_/_/_/  _/_/        
+		   _/  _/    _/    _/  _/    _/        _/           
 	_/_/_/      _/_/_/      _/        _/_/_/  _/            
 
 */
@@ -358,9 +406,9 @@ function PrepSaver() {
 
 
 /*
-	    _/_/_/            _/    _/      _/            _/  _/                     
-	     _/    _/_/_/        _/_/_/_/        _/_/_/  _/      _/_/_/_/    _/_/    
-	    _/    _/    _/  _/    _/      _/  _/    _/  _/  _/      _/    _/_/_/_/   
+		_/_/_/            _/    _/      _/            _/  _/                     
+		 _/    _/_/_/        _/_/_/_/        _/_/_/  _/      _/_/_/_/    _/_/    
+		_/    _/    _/  _/    _/      _/  _/    _/  _/  _/      _/    _/_/_/_/   
 	   _/    _/    _/  _/    _/      _/  _/    _/  _/  _/    _/      _/          
 	_/_/_/  _/    _/  _/      _/_/  _/    _/_/_/  _/  _/  _/_/_/_/    _/_/_/     
 
