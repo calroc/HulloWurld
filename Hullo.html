@@ -284,6 +284,7 @@ html, body {
 </style>
 <script id="heap" type="text/javascript">var heap_data = {};</script>
 <script src="lexer.js" type="text/javascript"></script>
+<script src="joy.js" type="text/javascript"></script>
 <script type="text/javascript">
 
 /*
@@ -297,99 +298,11 @@ html, body {
 */
 
 
+Joy = Joy(Lexer);
 
-function joy(stack, expression, dictionary) {
-	let term;
-	while (!_.isEmpty(expression)) {
-		[term, expression] = expression;
-		if (_.isFunction(term)) {
-			[stack, expression, dictionary] = term(stack, expression, dictionary);
-		} else {
-			stack = [term, stack];
-		}
-	}
-	return [stack, expression, dictionary];
-}
-
-var D = {
-	add: function add(stack, expression, dictionary) {
-		let a, b;
-		[a, [b, stack]] = stack;
-		return [[a + b, stack], expression, dictionary];
-	}
-};
-
-var S = [],
-	E = [14, [23, [D.add, []]]];
-
-[s, e, d] = joy(S, E, D)
-console.log(s.toSource())
-
-function lookup(name) {
-	let thing = D[name];
-	if (_.isUndefined(thing)) {
-		throw 'I dunno what is ' + name;
-	}
-	return thing;
-}
-
-var lexer = new Lexer();
-// Float
-lexer.addRule(/-?\d+\.\d*/, (s) => (+s));
-// Int
-lexer.addRule(/-?\d+/, (s) => (+s));
-// Brackets
-lexer.addRule(/\[|\]/, _.identity);
-// Identifier
-lexer.addRule(/[\w!@$%^&*()_+<>?|\/;:`~,.=-]+/, lookup);
-// Strings
-lexer.addRule(/"(?:[^"\\]|\\.)*"/, (s) => (s.slice(1, -1)));
-// Blankspace
-lexer.addRule(/\s+/, function () {});
-
-function tokenize(text) {
-	lexer.setInput(text);
-	return mori.intoArray(mori.takeWhile(_.identity, mori.repeatedly(() => lexer.lex())));
-}
-
-function parse(tokens) {
-	let frame = [],
-		stack = [];
-
-	_.each(tokens, function (tok) {
-		if (tok == '[') {
-			stack.push(frame);
-			frame = [];
-			stack[stack.length - 1].push(frame);
-		} else if (tok == ']') {
-			frame = stack.pop();
-			frame[frame.length - 1] = array_to_stack(frame[frame.length - 1]);
-		} else {
-			frame.push(tok);
-		}
-	});
-
-	return array_to_stack(frame);
-}
-
-function array_to_stack(arr) {
-	let stack = [];
-	_.forEachRight(arr, function (item) {
-		stack = [item, stack];
-	});
-	return stack;
-}
-
-var test_source = '[123.456 ] 23 18 add "it does work." 789';
-var tokens = tokenize(test_source);
-var expr = parse(tokens);
-console.log(expr.toSource());
-
-[s, e, d] = joy([], expr, D);
+[s, e, d] = Joy.run("23 18 add", [], Joy.dictionary)
 
 console.log(s.toSource())
-
-
 
 // Start.
 Zepto(function ($) {
