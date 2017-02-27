@@ -1,3 +1,37 @@
+/*
+
+	         _/                      _/                   _/   _/_/_/   
+	        _/   _/_/   _/    _/       _/_/_/            _/ _/          
+	       _/ _/    _/ _/    _/    _/ _/    _/          _/   _/_/       
+	_/    _/ _/    _/ _/    _/    _/ _/    _/    _/    _/       _/      
+	 _/_/     _/_/     _/_/_/    _/ _/    _/      _/_/   _/_/_/         
+	                      _/                                            
+	                 _/_/                                               
+
+	An implementation of Manfred von Thun's Joy in CPS in Javascript.
+
+	(CPS = Continuation-Passing Style)
+
+	Depends on https://github.com/aaditmshah/lexer
+
+	Copyright © 2017 Simon Forman
+
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+
 function Joy(Lexer) {
 
 function joy(stack, expression, dictionary) {
@@ -14,9 +48,13 @@ function joy(stack, expression, dictionary) {
 }
 
 function run(text, stack, dictionary) {
-	let tokens = tokenize(text),
-		expression = parse(tokens);
+	let expression = text_to_expression(text, dictionary);
 	return joy(stack, expression, dictionary);
+}
+
+function text_to_expression(text, dictionary) {
+	let tokens = tokenize(text, dictionary);
+	return parse(tokens);
 }
 
 var D = {
@@ -28,12 +66,14 @@ var D = {
 };
 
 function lookup(name) {
-	let thing = D[name];
+	let thing = lookup.dictionary[name];
 	if (_.isUndefined(thing)) {
 		throw 'I dunno what is ' + name;
 	}
 	return thing;
 }
+
+lookup.dictionary = D;
 
 var lexer = new Lexer();
 // Float
@@ -49,7 +89,8 @@ lexer.addRule(/"(?:[^"\\]|\\.)*"/, (s) => (s.slice(1, -1)));
 // Blankspace
 lexer.addRule(/\s+/, function () {});
 
-function tokenize(text) {
+function tokenize(text, dictionary) {
+	lookup.dictionary = dictionary;
 	lexer.setInput(text);
 	return mori.intoArray(mori.takeWhile(_.identity, mori.repeatedly(() => lexer.lex())));
 }
@@ -94,7 +135,8 @@ function array_to_stack(arr) {
 return {
 	'joy': joy,
 	'run': run,
-	'dictionary': D
+	'dictionary': D,
+	'text_to_expression': text_to_expression
 };
 
 }
