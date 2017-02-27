@@ -12,7 +12,10 @@
 
 	(CPS = Continuation-Passing Style)
 
-	Depends on https://github.com/aaditmshah/lexer
+	Depends on:
+	https://github.com/aaditmshah/lexer
+	https://github.com/swannodette/mori
+	https://github.com/lodash/lodash
 
 	Copyright © 2017 Simon Forman
 
@@ -32,7 +35,7 @@
 */
 
 
-function Joy(Lexer) {
+function Joy(Lexer, _, mori) {
 
 function joy(stack, expression, dictionary) {
 	let term;
