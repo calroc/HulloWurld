@@ -259,7 +259,7 @@ html, body {
 	padding: 0px 10px 0px 10px;
 }
 
-#content {
+.card {
 	background-color: #fff;
 	margin: 1em 1em 1em 1em;
 	padding: 1em 1em 1em 1em;
@@ -346,6 +346,23 @@ function PrepSaver() {
 // Install saver prep.
 $("#saver").on("mousedown", PrepSaver);
 
+$("#content").on("keyup", function (e) {
+	let expr, s = $(this).text();
+	try {
+		expr = Joy.text_to_expression(s, Joy.dictionary);
+	}
+	catch (err) {
+		console.error(err);
+		$("#output").text('...');
+		return
+	}
+	expr = Joy.run(s, [], Joy.dictionary)[0];
+	// s = expr.toSource();
+	s = Joy.strstack(expr);
+	console.log(s);
+	$("#output").text(s);
+});
+
 });
 </script>
 </head>
@@ -356,8 +373,12 @@ $("#saver").on("mousedown", PrepSaver);
  <a id="saver" download="Hullo.html" href="#">Save...</a>
 </div>
 
-<div id="content">
+<div id="content" class="card" contenteditable>
 Yo.
+</div>
+
+<div id="output" class="card">
+
 </div>
 
 <div id="foot">

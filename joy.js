@@ -14,8 +14,8 @@
 
 	Depends on:
 	https://github.com/aaditmshah/lexer
-	https://github.com/swannodette/mori
 	https://github.com/lodash/lodash
+	https://github.com/swannodette/mori
 
 	Copyright © 2017 Simon Forman
 
@@ -67,6 +67,7 @@ var D = {
 		return [[a + b, stack], expression, dictionary];
 	}
 };
+D['+'] = D['add'];
 
 function lookup(name) {
 	let thing = lookup.dictionary[name];
@@ -99,8 +100,7 @@ function tokenize(text, dictionary) {
 }
 
 function parse(tokens) {
-	let frame = [],
-		stack = [];
+	let frame = [], stack = [];
 
 	_.each(tokens, function (tok) {
 		if (tok == '[') {
@@ -126,6 +126,38 @@ function array_to_stack(arr) {
 	return stack;
 }
 
+function stack_to_array(stack) {
+	let arr = [], term;
+	while (!_.isEmpty(stack)) {
+		[term, stack] = stack;
+		arr.push(term);
+	}
+	return arr;
+}
+
+function stack_to_string(expression) {
+	if (!_.isArray(expression)) {
+		if (_.isFunction(expression)) {
+			return expression.name;
+		}
+			return expression.toString();
+	}
+	return '[' + strstack(expression) + ']';
+}
+
+function strstack(stack) {
+	if (!_.isArray(stack)) {
+		return stack.toString();
+	}
+	if (_.isEmpty(stack)) {
+		return "";
+	}
+	let arr = stack_to_array(stack);
+	let sss = _.map(arr, stack_to_string);
+	return sss.join(' ');
+}
+
+
 // var S = [],
 // 	E = [14, [23, [D.add, []]]],
 // 	s, e, d;
@@ -139,7 +171,8 @@ return {
 	'joy': joy,
 	'run': run,
 	'dictionary': D,
-	'text_to_expression': text_to_expression
+	'text_to_expression': text_to_expression,
+	'strstack': strstack
 };
 
 }
