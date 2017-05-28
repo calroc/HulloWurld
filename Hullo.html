@@ -436,6 +436,8 @@ function isWikiTitle(str) {
 	return huh;
 }
 
+var ViewModel;
+
 
 // Start.
 Zepto(function ($) {
@@ -480,7 +482,7 @@ function _ecxtrct(cardid, F, G, target, E) {
 			target.addClass('broken_link');
 			alert(E());
 		} else {
-			DisplayCard(card);
+			ViewModel.DisplayCard(card);
 		}
 	}
 }
@@ -489,9 +491,9 @@ function FragmentLink(cardid, target) {
 	return _ecxtrct(
 		cardid,
 		isWikiTitle,
-		function() {WikiTitleFragment(cardid, target)},
+		() => WikiTitleFragment(cardid, target),
 		target,
-		function() {return "Broken link!\n#" + cardid}
+		() => "Broken link!\n#" + cardid
 		);
 }
 
@@ -499,9 +501,9 @@ function WikiTitleFragment(title, target) {
 	return _ecxtrct(
 		heap_data.by_title[title],
 		_.isUndefined,
-		function() {MakeCard(title, "")},
+		() => MakeCard(title, ""),
 		target,
-		function() {return "Broken link!\nIn by_title but not cards.\n" + title}
+		() => "Broken link!\nIn by_title but not cards.\n" + title
 		);
 }
 
@@ -524,28 +526,21 @@ function WikiTitleFragment(title, target) {
 	                                 _/                                                                
 */
 
-var NEW_CARD = {title:"Untitled...", text:"..."};
-
-function NewCard() {
-	// Create a new blank card and store it in the heap.
-	var newcard = _.clone(NEW_CARD)
-	newcard.cardid = genUUID();
-	StoreCard(newcard);
-	return newcard;
-}
-
 function MakeCard(title, text) {
-	// Create and display a card with given title and text.
-	card = NewCard();
-	card.title = title;
-	card.text = text;
-	UpdateIndex();
-	DisplayCard(card);
+	// Create and display a card with given title and text and store it in the heap.
+	card = {
+		cardid: genUUID(),
+		title: title,
+		text: text
+	};
+	heap_data.cards[card.cardid] = card;
+	heap_data.by_title[card.title] = card.cardid;
+	ViewModel.UpdateCardIndex(card);
+	ViewModel.DisplayCard(card);
 }
 
 function CardViewModel(params) {
 	// Knockout ViewModel for cards.
-	_.defaults(params, NEW_CARD);
     this.title = params.title;
     this.text = params.text;
     this.cardid = params.cardid;
@@ -554,90 +549,42 @@ function CardViewModel(params) {
 }
  
 CardViewModel.prototype.CloseCard = function() {
-	C.remove(_.compose(_.partial(_.isEqual, this.cardid), _.property("cardid")));
+	ViewModel.current_cards.remove(card => card.cardid == this.cardid);
 };
 
-CardViewModel.prototype.EditCard = function(card, ev) {
+CardViewModel.prototype.EditCard = function(cvm, ev) {
 	// Toggle edit mode.
 	var editing = !this.edit();
 	this.edit(editing);
 	if (!editing) {
-		this.SaveCard(card, ev);
-		UpdateIndex();
+		this.SaveCard($(ev.target).parent());
 	};
 };
 
-CardViewModel.prototype.SaveCard = function(card_view_model, ev) {
+CardViewModel.prototype.SaveCard = function(carddiv) {
 	// Copy card data from DOM back to ViewModel and Model.
 	// Markdown markup generation happens here.
-	var card_model = heap_data.cards[card_view_model.cardid];
-	var carddiv = $(ev.target).parent();
+	var card_model = heap_data.cards[this.cardid];
 	var new_title = carddiv.find("h3").text();
 	var new_markdown = carddiv.find("textarea").val();
 	var new_markup = ConvertMarkdown(new_markdown);
-	card_view_model.title = new_title;
-	card_model.title = new_title;
-	card_view_model.text = new_markdown;
-	card_model.text = new_markdown;
-	card_view_model.markup(new_markup);
-};
-
-function StoreCard(card) {
-	heap_data.cards[card.cardid] = card;
-}
-
-function DisplayCard(card) {
-	// Display a card if it's not already displayed.
-	if (_.isUndefined(_.findWhere(C(), {cardid: card.cardid}))) {
-		C.unshift(card);
+	if (new_title != this.title) {
+		// Don't delete old titles so that old links still work.
+		//delete heap_data.by_title[this.title];
+		heap_data.by_title[new_title] = this.cardid;
+		this.title = new_title;
+		card_model.title = new_title;
+		ViewModel.UpdateCardIndex(card_model);
 	}
-}
+	this.text = new_markdown;
+	card_model.text = new_markdown;
+	this.markup(new_markup);
+};
 
 ko.components.register("card", {
     viewModel: CardViewModel,
     template: { element: "card-template" }
 });
-
-
-/*
-	    _/_/_/                  _/                      
-	     _/    _/_/_/      _/_/_/    _/_/    _/    _/   
-	    _/    _/    _/  _/    _/  _/_/_/_/    _/_/      
-	   _/    _/    _/  _/    _/  _/        _/    _/     
-	_/_/_/  _/    _/    _/_/_/    _/_/_/  _/    _/      
-	                                                    
-	                                                    
-	                                                              
-	  _/          _/  _/        _/                        _/      
-	 _/          _/        _/_/_/    _/_/_/    _/_/    _/_/_/_/   
-	_/    _/    _/  _/  _/    _/  _/    _/  _/_/_/_/    _/        
-	 _/  _/  _/    _/  _/    _/  _/    _/  _/          _/         
-	  _/  _/      _/    _/_/_/    _/_/_/    _/_/_/      _/_/      
-	                                 _/                           
-	                            _/_/                              
-*/
-
-function UpdateIndex() {
-	var I = $("#index");
-	var u = $("<ul></ul>");
-	I.empty();
-	I.append("<h4>Index</h4>");
-	I.append(u);
-	//heap_data.by_title = {};
-	// If you don't clear the by_title mapping, then old links still work after you change their titles.
-	_.each(heap_data.cards, function (card) {
-		var a = $('<a></a>')
-		 .text(card.title)
-		 .attr("href", "#")
-		 .on("click", function () { DisplayCard(card) })
-		 ;
-		var li = $("<li></li>");
-		a.appendTo(li);
-		li.appendTo(u);
-		heap_data.by_title[card.title] = card.cardid;
-	})
-}
-
 
 /*
 	    _/      _/                      _/              _/                                         
@@ -704,11 +651,36 @@ function PrepSaver() {
 
 */
 
-// Extract card IDs from the currently displayed cards' divs.
-// "Observe" the current cards.
-var C = ko.observableArray(_.map($(".card"), function(carddiv) {
-	return heap_data.cards[$(carddiv).attr("cardid")];
-}));
+ViewModel = {
+	// Extract card IDs from the currently displayed cards' divs.
+	// "Observe" the current cards.
+	current_cards: ko.observableArray(
+		_.map(
+			$(".card"), 
+			carddiv => heap_data.cards[$(carddiv).attr("cardid")]
+		)
+	),
+	card_index: ko.observableArray(
+		_.sortBy(
+			_.values(heap_data.cards),
+			card => card.title
+		)
+	),
+	DisplayCard: function (card) {
+		// Display a card if it's not already displayed.
+		if (-1 == this.current_cards.indexOf(card)) {
+			this.current_cards.unshift(card);
+		}
+	},
+	NewCardClick: function () {
+		MakeCard("Untitled...", "...");
+	},
+	UpdateCardIndex: function (card) {
+		this.card_index.remove(card)
+		var i = _.sortedIndex(this.card_index(), card, card => card.title);
+		this.card_index.splice(i, 0, card);
+	}
+};
 
 // Remove all the cards and add the component "call".
 $("#current_cards")
@@ -718,18 +690,13 @@ $("#current_cards")
  .on('click', 'a', HandleLinkClick)
  ;
 
+// Handle clicks on links in the Index.
+$("#index").on('click', 'a', HandleLinkClick);
+
 // Install saver prep.
 $("#saver").on("mousedown", PrepSaver);
 
-ko.applyBindings({
-	current_cards: C,
-	NewCardClick: function () {
-		DisplayCard(NewCard());
-		UpdateIndex();
-	}
-});
-
-UpdateIndex();
+ko.applyBindings(ViewModel);
 
 });
 </script>
@@ -777,13 +744,17 @@ On a card clicking the `Edit` button will switch it to an edit mode that lets yo
 <p>Welcome to "Hullo World", a simple self-hosted notebook web app modeled on <a href="http://classic.tiddlywiki.com/">Tiddlywiki classic version</a>.</p>
 <p>There is an index of links to cards at the bottom of the page.  You can create a new card by clicking on the <code>New</code> button at the top of the page, or you can write a title in <a href="#WikiTitle">WikiTitle</a> format and it will automatically be turned into a link that will create that card when you click on it.</p>
 <p>You can save the current content by clicking on the <code>Save...</code> button at the top of the page.  Your browser will prompt you for saving.</p>
-<p>On a card clicking the <code>Edit</code> button will switch it to an edit mode that lets you change the title or edit the content.  The content is <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">markdown</a> and the title should conform to <a href="#WikiTitle">WikiTitle</a>.  The <code>Edit</code> button changes to <code>Done</code> and the <code>Close</code> button (which closes the card) is disabled so you can't accidentally close the card during editing.  (Yes, it might be preferable to auto-save on close, but whatever.  This was easy and it works well enough for now.)</p>
+<p>On a card clicking the <code>Edit</code> button will switch it to an edit mode that lets you change the title or edit the content.  The content is <a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">markdown</a> and the title should conform to <a href="#WikiTitle">WikiTitle</a>.  The <code>Edit</code> button changes to <code>Done</code> and the <code>Close</code> button (which closes the card) is disabled so you cant accidentally close the card during editing.  (Yes, it might be preferable to auto-save on close, but whatever.  This was easy and it works well enough for now.)</p>
 </div>
 </div>
 </card></div>
 
 <div id="foot">
-<div id="index"><a href="#">ReviewSoFar</a><a href="#">AddAnEditor</a><a href="#">CardKindToggle</a><a href="#">IntegrateJoyInteraction</a><a href="#">ToDo</a><a href="#">TableDemo</a><a href="#">InternalDocs</a><a href="#">ReadMe</a></div>
+<div id="index">
+<ul data-bind="foreach: card_index">
+  <li><a data-bind="text: title, attr: { href: ('#' + title) }"></a></li>
+</ul>
+</div>
 <div id="endpiece">Copyright 2017 Simon Forman.<br>This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
 	the Free Software Foundation, either version 3 of the License, or
